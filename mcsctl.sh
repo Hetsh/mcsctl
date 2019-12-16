@@ -206,7 +206,7 @@ remove() {
 		exit $ERROR_SERVER_ACTIVE
 	fi
 
-	rm -r "$SERVER_DIR"
+	rm -rf "$SERVER_DIR"
 
 	echo "done"
 }
@@ -264,7 +264,10 @@ case "$1" in
 		;;
 	"$CMD_DESTROY")
 		require_server_id
-		remove
+		read -p "Delete world data and configuration of server #$SERVER_ID? [y/n]" -n 1 -r; echo ""
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			remove	
+		fi
 		;;
 	*)
 		help
