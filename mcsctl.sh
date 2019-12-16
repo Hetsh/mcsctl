@@ -8,7 +8,7 @@ if [ "$USER" != "$MCS_USER" ]; then
 fi
 
 # CLI args
-readonly COMMAND="$1"
+readonly CMD="$1"
 readonly SERVER_ID="$2"
 # /CLI args
 
@@ -29,12 +29,14 @@ source "/etc/mcsctl.conf" &> /dev/null
 # Immutable config
 readonly SERVER_NAME="mcserver$SERVER_ID"
 readonly SERVER_DIR="$SERVER_ROOT/$SERVER_NAME"
-readonly SERVER_APP="$SERVER_DIR/server.jar"
+readonly SERVER_APP_NAME="server.jar"
+readonly SERVER_APP="$SERVER_DIR/$SERVER_APP_NAME"
 readonly SERVER_VERSION="$SERVER_DIR/server.version"
 # /Immutable config
 
 # Commands
 readonly CMD_HELP="help"
+readonly CMD_LIST="list"
 readonly CMD_STATUS="status"
 readonly CMD_START="start"
 readonly CMD_STOP="stop"
@@ -104,6 +106,16 @@ wait_server_start() {
 wait_server_stop() {
 	while server_active; do
 		sleep 0.1
+	done
+}
+
+list() {
+	SERVER_LIST=$(find "$SERVER_ROOT" -type f -name "$SERVER_APP_NAME" | sort -n)
+	echo "Total servers: $(echo "$SERVER_LIST" | wc -w)"
+	for SERVER in $SERVER_LIST; do
+		SERVER=${SERVER##*mcserver}
+		SERVER=${SERVER%%/*}
+		echo "MCServer #$SERVER"
 	done
 }
 
@@ -210,6 +222,7 @@ help() {
 	local MY_NAME="${0##*/}"
 	echo -e "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
 		\r$CMD_HELP		Prints this help.
+		\r$CMD_LIST		Shows all existing servers
 		\r$CMD_STATUS	<id>	Status of a server and its screen session.
 		\r$CMD_START	<id>	Starts a server inside a screen session.
 		\r$CMD_STOP	<id>	Stops a server and its screen session.
@@ -263,9 +276,12 @@ require_server_inactive() {
 }
 
 
-case "$1" in
+case "$CMD" in
 	"$CMD_HELP")
 		help
+		;;
+	"$CMD_LIST")
+		list
 		;;
 	"$CMD_STATUS")
 		require_server_exists
