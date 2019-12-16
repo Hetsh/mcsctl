@@ -24,6 +24,7 @@ SERVER_ID="$2"
 SERVER_NAME="mcserver$SERVER_ID"
 SERVER_DIR="$SERVER_ROOT/$SERVER_NAME"
 SERVER_APP="$SERVER_DIR/server.jar"
+SERVER_VERSION="$SERVER_DIR/server.version"
 # /Immutable config
 
 # Commands
@@ -45,11 +46,12 @@ ERROR_SERVER_MISSING="3"
 ERROR_SERVER_EXISTS="4"
 ERROR_SERVER_APP_MISSING="5"
 ERROR_SCRAPE_FAILED="6"
-ERROR_DOWNLOAD_FAILED="7"
-ERROR_SERVER_ACTIVE="8"
-ERROR_SERVER_INACTIVE="9"
-ERROR_EULA_FILE_MISSING="10"
-ERROR_PROPERTIES_FILE_MISSING="11"
+ERROR_SERVER_LATEST="7"
+ERROR_DOWNLOAD_FAILED="8"
+ERROR_SERVER_ACTIVE="9"
+ERROR_SERVER_INACTIVE="10"
+ERROR_EULA_FILE_MISSING="11"
+ERROR_PROPERTIES_FILE_MISSING="12"
 # /Results
 
 
@@ -154,12 +156,15 @@ stop() {
 download() {
 	echo -n $(custom_date) "Downloading latest version... "
 
-	# In preparation for issue #16
-	#local LATEST_VERSION=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".latest.release")
+	local CURRENT_VERSION="$(cat "$SERVER_VERSION" 2> /dev/null)"
+	local LATEST_VERSION=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".latest.release")
+	if [ $(vercmp "$CURRENT_VERSION" "$LATEST_VERSION") -ge 0 ]; then
+		echo "already on latest release."
+		exit $ERROR_SERVER_LATEST
+	fi
 	
 	local METADATA_URL=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".versions[0].url")
 	local SERVER_URL=$(curl -s -L "$METADATA_URL" | jq -r ".downloads.server.url")
-
 	if [ -z "$SERVER_URL" ]; then
 		echo "failed to scrape url -> aborted"
 		exit $ERROR_SCRAPE_FAILED
@@ -170,6 +175,7 @@ download() {
 		echo "failed to download jar -> aborted"
 		exit $ERROR_DOWNLOAD_FAILED
 	fi
+	echo "$LATEST_VERSION" > "$SERVER_VERSION"
 
 	echo "done"
 }
