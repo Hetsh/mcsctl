@@ -13,9 +13,10 @@ MIN_RAM="1024"
 MAX_RAM="1024"
 TIMEOUT="10"
 SERVER_ROOT="$HOME"
+DATE_FORMAT="%Y_%m_%d-%H_%M_%S"
 # /Mutable config
 
-# Read config file before setting any non-mutual variables
+# Read config file before setting any immutual variables
 # MCS_USER is an exception, since it is not used later
 source "/etc/mcsctl.conf" &> /dev/null
 
@@ -56,7 +57,7 @@ ERROR_PROPERTIES_FILE_MISSING="12"
 
 
 custom_date() {
-	echo "$(date +"%Y")_$(date +"%m")_$(date +"%d")-$(date +"%H")_$(date +"%M")_$(date +"%S")"
+	date "+$DATE_FORMAT"
 }
 
 screen_active() {
@@ -103,7 +104,7 @@ wait_server_stop() {
 
 status() {
 	if screen_active; then
-		echo -n "Screen active, "
+		echo -n $(custom_date) "Screen active, "
 	else
 		echo -n "Screen inactive, "
 	fi
