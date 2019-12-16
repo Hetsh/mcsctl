@@ -19,6 +19,14 @@ CMD_CREATE="create"
 CMD_UPDATE="update"
 CMD_DESTROY="destroy"
 
+# Enforce mcs user, but allow access by admins
+MCS_USER="mcs"
+if [ "$USER" != "$MCS_USER" ]
+then
+	sudo su -c "$0 $*" -s "/usr/bin/bash" "$MCS_USER"
+	exit
+fi
+
 
 function custom_date {
 	echo "$(date +"%Y")-$(date +"%m")-$(date +"%d")_$(date +"%H")-$(date +"%M"):"
