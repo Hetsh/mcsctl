@@ -52,7 +52,7 @@ ERROR_PROPERTIES_FILE_MISSING="9"
 
 
 custom_date() {
-	echo "$(date +"%Y")-$(date +"%m")-$(date +"%d")_$(date +"%H")-$(date +"%M"):"
+	echo "$(date +"%Y")_$(date +"%m")_$(date +"%d")-$(date +"%H")_$(date +"%M")_$(date +"%S")"
 }
 
 screen_active() {
@@ -161,7 +161,11 @@ download() {
 		exit $ERROR_SERVER_ACTIVE
 	fi
 
-	local SERVER_URL=$(curl -s -L "https://minecraft.net/de-de/download/server" | grep -o -P "https://.*server.jar")
+	# In preparation for issue #16
+	#local LATEST_VERSION=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".latest.release")
+	
+	local METADATA_URL=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".versions[0].url")
+	local SERVER_URL=$(curl -s -L "$METADATA_URL" | jq -r ".downloads.server.url")
 
 	if [ -z "$SERVER_URL" ]; then
 		echo "failed to scrape url -> aborted"
