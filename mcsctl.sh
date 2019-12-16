@@ -44,6 +44,7 @@ readonly CMD_STATUS="status"
 readonly CMD_START="start"
 readonly CMD_STOP="stop"
 readonly CMD_RESTART="restart"
+readonly CMD_CONSOLE="console"
 readonly CMD_CREATE="create"
 readonly CMD_UPDATE="update"
 readonly CMD_DESTROY="destroy"
@@ -174,6 +175,14 @@ stop() {
 	echo "done"
 }
 
+console() {
+	echo -n $(custom_date) "Connecting to screen session... "
+
+	screen -r "$SERVER_NAME"
+
+	echo "done"
+}
+
 download() {
 	echo -n $(custom_date) "Downloading latest version... "
 
@@ -230,6 +239,7 @@ help() {
 		\r$CMD_START	<id>	Starts a server inside a screen session.
 		\r$CMD_STOP	<id>	Stops a server and its screen session.
 		\r$CMD_RESTART	<id>	Restarts a server.
+		\r$CMD_CONSOLE	<id>	Connect to the screen session.
 		\r$CMD_CREATE	<id>	Creates a server in \"$SERVER_DIR\".
 		\r$CMD_UPDATE	<id>	Downloads a new minecraft server executable for the specified server.
 		\r$CMD_DESTROY	<id>	Removes all files of a server."
@@ -302,6 +312,10 @@ case "$CMD" in
 		require_server_active
 		stop
 		start
+		;;
+	"$CMD_CONSOLE")
+		require_server_active
+		console
 		;;
 	"$CMD_CREATE")
 		require_server_missing
