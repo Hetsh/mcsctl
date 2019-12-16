@@ -60,7 +60,7 @@ wait_screen_stop() {
 }
 
 server_active() {
-	PROCESSES="$(ps -h)"
+	local PROCESSES="$(ps -h)"
 	if [ -n "$(echo "$PROCESSES" | grep -o "$SERVER_APP")" ]; then
 		return $(true)
 	else
@@ -217,8 +217,8 @@ fi
 
 # Enforce mcs user, but allow access by admins
 if [ "$USER" != "$MCS_USER" ]; then
-	sudo -u "$MCS_USER" -s "/usr/bin/bash" -c "$0 $*"
-	exit
+	sudo -u "$MCS_USER" -s "/usr/bin/bash" "$0" "$@"
+	exit $?
 fi
 
 case "$1" in
