@@ -10,6 +10,7 @@ fi
 # CLI args
 readonly CMD="$1"
 readonly SERVER_ID="$2"
+readonly SERVER_COMMAND="$3"
 # /CLI args
 
 # Mutable config
@@ -45,6 +46,7 @@ readonly CMD_START="start"
 readonly CMD_STOP="stop"
 readonly CMD_RESTART="restart"
 readonly CMD_CONSOLE="console"
+readonly CMD_COMMAND="command"
 readonly CMD_CREATE="create"
 readonly CMD_UPDATE="update"
 readonly CMD_DESTROY="destroy"
@@ -54,16 +56,17 @@ readonly CMD_DESTROY="destroy"
 readonly SUCCESS="0"
 readonly ERROR_UNKNOWN_COMMAND="1"
 readonly ERROR_ID_MISSING="2"
-readonly ERROR_SERVER_MISSING="3"
-readonly ERROR_SERVER_EXISTS="4"
-readonly ERROR_SERVER_APP_MISSING="5"
-readonly ERROR_SCRAPE_FAILED="6"
-readonly ERROR_SERVER_LATEST="7"
-readonly ERROR_DOWNLOAD_FAILED="8"
-readonly ERROR_SERVER_ACTIVE="9"
-readonly ERROR_SERVER_INACTIVE="10"
-readonly ERROR_EULA_FILE_MISSING="11"
-readonly ERROR_PROPERTIES_FILE_MISSING="12"
+readonly ERROR_COMMAND_MISSING="3"
+readonly ERROR_SERVER_MISSING="4"
+readonly ERROR_SERVER_EXISTS="5"
+readonly ERROR_SERVER_APP_MISSING="6"
+readonly ERROR_SCRAPE_FAILED="7"
+readonly ERROR_SERVER_LATEST="8"
+readonly ERROR_DOWNLOAD_FAILED="9"
+readonly ERROR_SERVER_ACTIVE="10"
+readonly ERROR_SERVER_INACTIVE="11"
+readonly ERROR_EULA_FILE_MISSING="12"
+readonly ERROR_PROPERTIES_FILE_MISSING="13"
 # /Results
 
 
@@ -183,6 +186,17 @@ console() {
 	echo "done"
 }
 
+forward_command() {
+	echo -n $(custom_date) "Forwarding command to server... "
+
+	screen -S "$SERVER_NAME" -p 0 -X stuff "$SERVER_COMMAND\n"
+	local KEYWORD="/\[$(date +%H:%M:%S)\]/p"
+	echo "done"
+	
+	sleep 0.5
+	sed -n "$KEYWORD" "$SERVER_DIR/logs/latest.log"
+}
+
 download() {
 	echo -n $(custom_date) "Downloading latest version... "
 
@@ -233,22 +247,30 @@ remove() {
 help() {
 	local MY_NAME="${0##*/}"
 	echo -e "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
-		\r$CMD_HELP		Prints this help.
-		\r$CMD_LIST		Shows all existing servers
-		\r$CMD_STATUS	<id>	Status of a server and its screen session.
-		\r$CMD_START	<id>	Starts a server inside a screen session.
-		\r$CMD_STOP	<id>	Stops a server and its screen session.
-		\r$CMD_RESTART	<id>	Restarts a server.
-		\r$CMD_CONSOLE	<id>	Connect to the screen session.
-		\r$CMD_CREATE	<id>	Creates a server in \"$SERVER_DIR\".
-		\r$CMD_UPDATE	<id>	Downloads a new minecraft server executable for the specified server.
-		\r$CMD_DESTROY	<id>	Removes all files of a server."
+		\r$CMD_HELP			Prints this help.
+		\r$CMD_LIST			Shows all existing servers
+		\r$CMD_STATUS	<id>		Status of a server and its screen session.
+		\r$CMD_START	<id>		Starts a server inside a screen session.
+		\r$CMD_STOP	<id>		Stops a server and its screen session.
+		\r$CMD_RESTART	<id>		Restarts a server.
+		\r$CMD_CONSOLE	<id>		Connect to the screen session.
+		\r$CMD_COMMAND	<id> <cmd>	Forward <cmd> to specified server.
+		\r$CMD_CREATE	<id>		Creates a server in \"$SERVER_DIR\".
+		\r$CMD_UPDATE	<id>		Downloads a new minecraft server executable for the specified server.
+		\r$CMD_DESTROY	<id>		Removes all files of a server."
 }
 
 require_server_id() {
 	if [ -z "$SERVER_ID" ]; then
 		echo $(custom_date) "Missing server id!"
 		exit $ERROR_ID_MISSING
+	fi
+}
+
+require_command() {
+	if [ -z "$SERVER_COMMAND" ]; then
+		echo $(custom_date) "Missing command!"
+		exit $ERROR_COMMAND_MISSING
 	fi
 }
 
@@ -316,6 +338,11 @@ case "$CMD" in
 	"$CMD_CONSOLE")
 		require_server_active
 		console
+		;;
+	"$CMD_COMMAND")
+		require_server_active
+		require_command
+		forward_command
 		;;
 	"$CMD_CREATE")
 		require_server_missing
