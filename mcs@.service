@@ -7,8 +7,8 @@ Wants=network-online.target
 User=mcs
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=mcserver.sh start %i
-ExecStop=mcserver.sh stop %i
+ExecStart=mcsctl start %i
+ExecStop=mcsctl stop %i
 
 [Install]
 WantedBy=multi-user.target
