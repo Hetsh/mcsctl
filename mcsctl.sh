@@ -181,11 +181,11 @@ configure() {
 	echo "eula=TRUE" > "$SERVER_DIR/eula.txt"
 
 	# Properties
-	echo "server-port=$((25564 + $SERVER_ID))
-	motd=Welcome to MC-Server #$SERVER_ID.
-	player-idle-timeout=5
-	snooper-enabled=false
-	view-distance=15" > "$SERVER_DIR/server.properties"
+	echo -e "server-port=$((25564 + $SERVER_ID))
+		\rmotd=Welcome to MC-Server #$SERVER_ID.
+		\rplayer-idle-timeout=5
+		\rsnooper-enabled=false
+		\rview-distance=15" > "$SERVER_DIR/server.properties"
 
 	echo "done"
 }
@@ -200,15 +200,15 @@ remove() {
 
 help() {
 	local MY_NAME="${0##*/}"
-	echo "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
-		$CMD_HELP		Prints this help.
-		$CMD_STATUS	<id>	Status of a server and its screen session.
-		$CMD_START	<id>	Starts a server inside a screen session.
-		$CMD_STOP	<id>	Stops a server and its screen session.
-		$CMD_RESTART	<id>	Restarts a server.
-		$CMD_CREATE	<id>	Creates a server in \"$SERVER_DIR\".
-		$CMD_UPDATE	<id>	Downloads a new minecraft server executable for the specified server.
-		$CMD_DESTROY	<id>	Removes all files of a server."
+	echo -e "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
+		\r$CMD_HELP		Prints this help.
+		\r$CMD_STATUS	<id>	Status of a server and its screen session.
+		\r$CMD_START	<id>	Starts a server inside a screen session.
+		\r$CMD_STOP	<id>	Stops a server and its screen session.
+		\r$CMD_RESTART	<id>	Restarts a server.
+		\r$CMD_CREATE	<id>	Creates a server in \"$SERVER_DIR\".
+		\r$CMD_UPDATE	<id>	Downloads a new minecraft server executable for the specified server.
+		\r$CMD_DESTROY	<id>	Removes all files of a server."
 }
 
 require_server_id() {
