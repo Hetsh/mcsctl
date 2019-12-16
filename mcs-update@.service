@@ -1,0 +1,14 @@
+[Unit]
+Description=Minecraft server update
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=mcs
+Type=oneshot
+KillMode=none
+ExecStart=mcsctl update %i
+ExecStart=mcsctl restart %i
+
+[Install]
+WantedBy=multi-user.target

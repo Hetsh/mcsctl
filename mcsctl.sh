@@ -353,7 +353,6 @@ else
 			fi
 			;;
 		"$CMD_UPDATE")
-			require_server_inactive
 			update
 			;;
 		"$CMD_DESTROY")

@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily minecraft server update
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target
