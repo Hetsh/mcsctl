@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 SUCCESS="0"
 ERROR_ID_MISSING="1"
 ERROR_INSTALL_DIR_MISSING="2"
@@ -224,7 +225,8 @@ $CMD_START	id
 $CMD_STOP	id
 $CMD_RESTART	id
 $CMD_CREATE	id
-$CMD_UPDATE	id"
+$CMD_UPDATE	id
+$CMD_DESTROY	id"
 	;;
 esac
 
