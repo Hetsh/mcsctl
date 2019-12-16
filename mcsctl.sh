@@ -18,11 +18,14 @@ MAX_RAM="1024"
 TIMEOUT="10"
 SERVER_ROOT="$HOME"
 DATE_FORMAT="%Y_%m_%d-%H_%M_%S"
+if [ -n "$SERVER_ID" ]; then
 INITIAL_SERVER_PROPERTIES="server-port=$((25564 + $SERVER_ID))
 motd=Welcome to MC-Server #$SERVER_ID.
 player-idle-timeout=5
 snooper-enabled=false
 view-distance=15"
+fi
+
 # /Mutable config
 source "/etc/mcsctl.conf" &> /dev/null
 
