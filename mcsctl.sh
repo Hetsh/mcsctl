@@ -114,7 +114,7 @@ start() {
 	echo -n $(custom_date) "Starting server... "
 
 	if [ ! -e "$SERVER_APP" ]; then
-		echo "SERVER_APP nicht vorhanden -> aborted"
+		echo "SERVER_APP does not exist -> aborted"
 		exit $ERROR_SERVER_APP_MISSING
 	fi
 
@@ -138,7 +138,7 @@ stop() {
 
 	# stop server application with timeout
 	if server_active; then
-		screen -S "$SERVER_NAME" -p 0 -X stuff "say ACHTUNG! Server wird in $TIMEOUT Sekunden neu gestartet!\n"
+		screen -S "$SERVER_NAME" -p 0 -X stuff "say ATTENTION! Server will be shut down in $TIMEOUT seconds!\n"
 		sleep "$TIMEOUT"
 		screen -S "$SERVER_NAME" -p 0 -X stuff "stop\n"
 		wait_server_stop
