@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
 # Enforce mcs user, but allow access by admins
-MCS_USER="mcs"
+readonly MCS_USER="mcs"
 if [ "$USER" != "$MCS_USER" ]; then
 	sudo -u "$MCS_USER" -s "/usr/bin/bash" "$0" "$@"
 	exit $?
 fi
 
+# CLI args
+readonly COMMAND="$1"
+readonly SERVER_ID="$2"
+# /CLI args
 
 # Mutable config
 MIN_RAM="1024"
@@ -14,45 +18,46 @@ MAX_RAM="1024"
 TIMEOUT="10"
 SERVER_ROOT="$HOME"
 DATE_FORMAT="%Y_%m_%d-%H_%M_%S"
+INITIAL_SERVER_PROPERTIES="server-port=$((25564 + $SERVER_ID))
+motd=Welcome to MC-Server #$SERVER_ID.
+player-idle-timeout=5
+snooper-enabled=false
+view-distance=15"
 # /Mutable config
-
-# Read config file before setting any immutual variables
-# MCS_USER is an exception, since it is not used later
 source "/etc/mcsctl.conf" &> /dev/null
 
 # Immutable config
-SERVER_ID="$2"
-SERVER_NAME="mcserver$SERVER_ID"
-SERVER_DIR="$SERVER_ROOT/$SERVER_NAME"
-SERVER_APP="$SERVER_DIR/server.jar"
-SERVER_VERSION="$SERVER_DIR/server.version"
+readonly SERVER_NAME="mcserver$SERVER_ID"
+readonly SERVER_DIR="$SERVER_ROOT/$SERVER_NAME"
+readonly SERVER_APP="$SERVER_DIR/server.jar"
+readonly SERVER_VERSION="$SERVER_DIR/server.version"
 # /Immutable config
 
 # Commands
-CMD_HELP="help"
-CMD_STATUS="status"
-CMD_START="start"
-CMD_STOP="stop"
-CMD_RESTART="restart"
-CMD_CREATE="create"
-CMD_UPDATE="update"
-CMD_DESTROY="destroy"
+readonly CMD_HELP="help"
+readonly CMD_STATUS="status"
+readonly CMD_START="start"
+readonly CMD_STOP="stop"
+readonly CMD_RESTART="restart"
+readonly CMD_CREATE="create"
+readonly CMD_UPDATE="update"
+readonly CMD_DESTROY="destroy"
 # /Commands
 
 # Results
-SUCCESS="0"
-ERROR_UNKNOWN_COMMAND="1"
-ERROR_ID_MISSING="2"
-ERROR_SERVER_MISSING="3"
-ERROR_SERVER_EXISTS="4"
-ERROR_SERVER_APP_MISSING="5"
-ERROR_SCRAPE_FAILED="6"
-ERROR_SERVER_LATEST="7"
-ERROR_DOWNLOAD_FAILED="8"
-ERROR_SERVER_ACTIVE="9"
-ERROR_SERVER_INACTIVE="10"
-ERROR_EULA_FILE_MISSING="11"
-ERROR_PROPERTIES_FILE_MISSING="12"
+readonly SUCCESS="0"
+readonly ERROR_UNKNOWN_COMMAND="1"
+readonly ERROR_ID_MISSING="2"
+readonly ERROR_SERVER_MISSING="3"
+readonly ERROR_SERVER_EXISTS="4"
+readonly ERROR_SERVER_APP_MISSING="5"
+readonly ERROR_SCRAPE_FAILED="6"
+readonly ERROR_SERVER_LATEST="7"
+readonly ERROR_DOWNLOAD_FAILED="8"
+readonly ERROR_SERVER_ACTIVE="9"
+readonly ERROR_SERVER_INACTIVE="10"
+readonly ERROR_EULA_FILE_MISSING="11"
+readonly ERROR_PROPERTIES_FILE_MISSING="12"
 # /Results
 
 
@@ -184,15 +189,11 @@ download() {
 configure() {
 	echo -n $(custom_date) "Configuring server... "
 
-	# EULA
+	# Just accept the EULA, you wouldn't read it anyway :P
 	echo "eula=TRUE" > "$SERVER_DIR/eula.txt"
 
 	# Properties
-	echo -e "server-port=$((25564 + $SERVER_ID))
-		\rmotd=Welcome to MC-Server #$SERVER_ID.
-		\rplayer-idle-timeout=5
-		\rsnooper-enabled=false
-		\rview-distance=15" > "$SERVER_DIR/server.properties"
+	echo -e "$INITIAL_SERVER_PROPERTIES" > "$SERVER_DIR/server.properties"
 
 	echo "done"
 }
