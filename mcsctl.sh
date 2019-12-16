@@ -163,7 +163,7 @@ download() {
 		exit $ERROR_SERVER_LATEST
 	fi
 	
-	local METADATA_URL=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".versions[0].url")
+	local METADATA_URL=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".versions[] | select(.id==\"$LATEST_VERSION\") | .url")
 	local SERVER_URL=$(curl -s -L "$METADATA_URL" | jq -r ".downloads.server.url")
 	if [ -z "$SERVER_URL" ]; then
 		echo "failed to scrape url -> aborted"
