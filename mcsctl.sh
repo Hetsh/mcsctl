@@ -1,5 +1,29 @@
 #!/usr/bin/env bash
 
+# Enforce mcs user, but allow access by admins
+MCS_USER="mcs"
+if [ "$USER" != "$MCS_USER" ]; then
+	sudo -u "$MCS_USER" -s "/usr/bin/bash" "$0" "$@"
+	exit $?
+fi
+
+
+# Mutable config
+MIN_RAM="1024"
+MAX_RAM="1024"
+TIMEOUT="10"
+SERVER_ROOT="$HOME"
+# /Mutable config
+
+# Read config file before setting any other variables
+source "/etc/mcsctl.conf"
+
+# Immutable config
+SERVER_ID="$2"
+SERVER_NAME="mcserver$SERVER_ID"
+SERVER_DIR="$SERVER_ROOT/$SERVER_NAME"
+SERVER_APP="$SERVER_DIR/server.jar"
+# /Immutable config
 
 # Commands
 CMD_HELP="help"
@@ -10,29 +34,20 @@ CMD_RESTART="restart"
 CMD_CREATE="create"
 CMD_UPDATE="update"
 CMD_DESTROY="destroy"
+# /Commands
 
 # Results
 SUCCESS="0"
 ERROR_UNKNOWN_COMMAND="1"
 ERROR_ID_MISSING="2"
-ERROR_INSTALL_DIR_MISSING="3"
+ERROR_SERVER_DIR_MISSING="3"
 ERROR_SERVER_APP_MISSING="4"
 ERROR_SCRAPE_FAILED="5"
 ERROR_DOWNLOAD_FAILED="6"
 ERROR_SERVER_ACTIVE="7"
 ERROR_EULA_FILE_MISSING="8"
 ERROR_PROPERTIES_FILE_MISSING="9"
-
-# Config
-MCS_USER="mcs"
-MY_NAME="${0##*/}"
-MIN_RAM="1024" # in MB
-MAX_RAM="1024" # in MB
-TIMEOUT="10" # in seconds
-SERVER_ID="$2"
-SERVER_NAME="mserver$SERVER_ID"
-INSTALL_DIR="$HOME/$SERVER_NAME"
-SERVER_APP="$INSTALL_DIR/server.jar"
+# /Results
 
 
 custom_date() {
@@ -97,9 +112,9 @@ status() {
 start() {
 	echo -n $(custom_date) "Starting server... "
 
-	if [ ! -d "$INSTALL_DIR" ]; then
-		echo "INSTALL_DIR nicht vorhanden -> aborted"
-		exit $ERROR_INSTALL_DIR_MISSING
+	if [ ! -d "$SERVER_DIR" ]; then
+		echo "SERVER_DIR nicht vorhanden -> aborted"
+		exit $ERROR_SERVER_DIR_MISSING
 	fi
 
 	if [ ! -e "$SERVER_APP" ]; then
@@ -115,7 +130,7 @@ start() {
 
 	# start server application in working directory
 	if ! server_active; then
-		screen -S "$SERVER_NAME" -p 0 -X stuff "cd \"$INSTALL_DIR\"; java -Xms${MIN_RAM}M -Xmx${MAX_RAM}M -jar \"$SERVER_APP\" nogui\n"
+		screen -S "$SERVER_NAME" -p 0 -X stuff "cd \"$SERVER_DIR\"; java -Xms${MIN_RAM}M -Xmx${MAX_RAM}M -jar \"$SERVER_APP\" nogui\n"
 		wait_server_start
 	fi
 
@@ -157,7 +172,7 @@ download() {
 		exit $ERROR_SCRAPE_FAILED
 	fi
 
-	mkdir -p "$INSTALL_DIR"
+	mkdir -p "$SERVER_DIR"
 	if ! $(curl -s -L -o "$SERVER_APP" "$SERVER_URL"); then
 		echo "failed to download jar -> aborted"
 		exit $ERROR_DOWNLOAD_FAILED
@@ -170,14 +185,14 @@ configure() {
 	echo -n $(custom_date) "Configuring server... "
 
 	# EULA
-	echo "eula=TRUE" > "$INSTALL_DIR/eula.txt"
+	echo "eula=TRUE" > "$SERVER_DIR/eula.txt"
 
 	# Properties
 	echo "server-port=$((25564 + $SERVER_ID))
 	motd=Welcome to MC-Server #$SERVER_ID.
 	player-idle-timeout=5
 	snooper-enabled=false
-	view-distance=15" > "$INSTALL_DIR/server.properties"
+	view-distance=15" > "$SERVER_DIR/server.properties"
 
 	echo "done"
 }
@@ -190,21 +205,22 @@ remove() {
 		exit $ERROR_SERVER_ACTIVE
 	fi
 
-	rm -r "$INSTALL_DIR"
+	rm -r "$SERVER_DIR"
 
 	echo "done"
 }
 
 help() {
-echo "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
-	$CMD_HELP		Prints this help.
-	$CMD_STATUS	<id>	Status of a server and its screen session.
-	$CMD_START	<id>	Starts a server inside a screen session.
-	$CMD_STOP	<id>	Stops a server and its screen session.
-	$CMD_RESTART	<id>	Restarts a server.
-	$CMD_CREATE	<id>	Creates a server in \"$INSTALL_DIR\".
-	$CMD_UPDATE	<id>	Downloads a new minecraft server executable for the specified server.
-	$CMD_DESTROY	<id>	Removes all files of a server."
+	local MY_NAME="${0##*/}"
+	echo "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
+		$CMD_HELP		Prints this help.
+		$CMD_STATUS	<id>	Status of a server and its screen session.
+		$CMD_START	<id>	Starts a server inside a screen session.
+		$CMD_STOP	<id>	Stops a server and its screen session.
+		$CMD_RESTART	<id>	Restarts a server.
+		$CMD_CREATE	<id>	Creates a server in \"$SERVER_DIR\".
+		$CMD_UPDATE	<id>	Downloads a new minecraft server executable for the specified server.
+		$CMD_DESTROY	<id>	Removes all files of a server."
 }
 
 require_server_id() {
@@ -214,12 +230,6 @@ require_server_id() {
 	fi
 }
 
-
-# Enforce mcs user, but allow access by admins
-if [ "$USER" != "$MCS_USER" ]; then
-	sudo -u "$MCS_USER" -s "/usr/bin/bash" "$0" "$@"
-	exit $?
-fi
 
 case "$1" in
 	"$CMD_HELP")
