@@ -1,42 +1,10 @@
 #!/usr/bin/env bash
 
-# Enforce mcs user, but allow access by admins
-readonly MCS_USER="mcs"
-if [ "$USER" != "$MCS_USER" ]; then
-	sudo -u "$MCS_USER" -s "/usr/bin/bash" "$0" "$@"
-	exit $?
-fi
-
 # CLI args
 readonly CMD="$1"
 readonly SERVER_ID="$2"
 readonly SERVER_COMMAND="$3"
 # /CLI args
-
-# Mutable config
-MIN_RAM="1024"
-MAX_RAM="1024"
-TIMEOUT="10"
-SERVER_ROOT="$HOME"
-DATE_FORMAT="%Y_%m_%d-%H_%M_%S"
-if [ -n "$SERVER_ID" ]; then
-INITIAL_SERVER_PROPERTIES="server-port=$((25564 + $SERVER_ID))
-motd=Welcome to MC-Server #$SERVER_ID.
-player-idle-timeout=5
-snooper-enabled=false
-view-distance=15"
-fi
-
-# /Mutable config
-source "/etc/mcsctl.conf" &> /dev/null
-
-# Immutable config
-readonly SERVER_NAME="mcserver$SERVER_ID"
-readonly SERVER_DIR="$SERVER_ROOT/$SERVER_NAME"
-readonly SERVER_APP_NAME="server.jar"
-readonly SERVER_APP="$SERVER_DIR/$SERVER_APP_NAME"
-readonly SERVER_VERSION="$SERVER_DIR/server.version"
-# /Immutable config
 
 # Commands
 readonly CMD_HELP="help"
@@ -68,6 +36,38 @@ readonly ERROR_SERVER_INACTIVE="11"
 readonly ERROR_EULA_FILE_MISSING="12"
 readonly ERROR_PROPERTIES_FILE_MISSING="13"
 # /Results
+
+# Enforce mcs user (except for help command)
+readonly MCS_USER="mcs"
+if [ "$CMD" != "$CMD_HELP" ] && [ "$USER" != "$MCS_USER" ]; then
+	sudo -u "$MCS_USER" -s "/usr/bin/bash" "$0" "$@"
+	exit $?
+fi
+
+# Mutable config
+MIN_RAM="1024"
+MAX_RAM="1024"
+TIMEOUT="10"
+SERVER_ROOT="$HOME"
+DATE_FORMAT="%Y_%m_%d-%H_%M_%S"
+if [ -n "$SERVER_ID" ]; then
+INITIAL_SERVER_PROPERTIES="server-port=$((25564 + $SERVER_ID))
+motd=Welcome to MC-Server #$SERVER_ID.
+player-idle-timeout=5
+snooper-enabled=false
+view-distance=15"
+fi
+
+# /Mutable config
+source "/etc/mcsctl.conf" &> /dev/null
+
+# Immutable config
+readonly SERVER_NAME="mcserver$SERVER_ID"
+readonly SERVER_DIR="$SERVER_ROOT/$SERVER_NAME"
+readonly SERVER_APP_NAME="server.jar"
+readonly SERVER_APP="$SERVER_DIR/$SERVER_APP_NAME"
+readonly SERVER_VERSION="$SERVER_DIR/server.version"
+# /Immutable config
 
 
 custom_date() {
