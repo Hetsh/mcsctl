@@ -15,8 +15,9 @@ TIMEOUT="10"
 SERVER_ROOT="$HOME"
 # /Mutable config
 
-# Read config file before setting any other variables
-source "/etc/mcsctl.conf"
+# Read config file before setting any non-mutual variables
+# MCS_USER is an exception, since it is not used later
+source "/etc/mcsctl.conf" &> /dev/null
 
 # Immutable config
 SERVER_ID="$2"
