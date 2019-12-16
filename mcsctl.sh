@@ -41,7 +41,7 @@ readonly ERROR_NO_SERVERS="16"
 
 # Enforce mcs user (except for help command)
 readonly MCS_USER="mcs"
-if [ "$CMD" != "$CMD_HELP" ] && [ "$USER" != "$MCS_USER" ]; then
+if [ -n "$CMD" ] && [ "$CMD" != "$CMD_HELP" ] && [ "$USER" != "$MCS_USER" ]; then
 	sudo -u "$MCS_USER" -s "/usr/bin/bash" "$0" "$@"
 	exit $?
 fi
@@ -315,10 +315,10 @@ if [ "$SERVER_ID" == "all" ]; then
 else
 	case "$CMD" in
 		"$CMD_HELP")
-			require_server_exists
 			help
 			;;
 		"$CMD_STATUS")
+			require_server_exists
 			status
 			;;
 		"$CMD_START")
