@@ -47,8 +47,9 @@ ERROR_SERVER_APP_MISSING="5"
 ERROR_SCRAPE_FAILED="6"
 ERROR_DOWNLOAD_FAILED="7"
 ERROR_SERVER_ACTIVE="8"
-ERROR_EULA_FILE_MISSING="9"
-ERROR_PROPERTIES_FILE_MISSING="10"
+ERROR_SERVER_INACTIVE="9"
+ERROR_EULA_FILE_MISSING="10"
+ERROR_PROPERTIES_FILE_MISSING="11"
 # /Results
 
 
@@ -77,6 +78,7 @@ wait_screen_stop() {
 }
 
 server_active() {
+	# uses unique path to server application to find process
 	local PROCESSES="$(ps -h)"
 	if [ -n "$(echo "$PROCESSES" | grep -o "$SERVER_APP")" ]; then
 		return $(true)
@@ -113,11 +115,6 @@ status() {
 
 start() {
 	echo -n $(custom_date) "Starting server... "
-
-	if [ ! -e "$SERVER_APP" ]; then
-		echo "SERVER_APP does not exist -> aborted"
-		exit $ERROR_SERVER_APP_MISSING
-	fi
 
 	# start screen session
 	if ! screen_active; then
@@ -157,11 +154,6 @@ stop() {
 download() {
 	echo -n $(custom_date) "Downloading latest version... "
 
-	if server_active; then
-		echo "server active -> aborted"
-		exit $ERROR_SERVER_ACTIVE
-	fi
-
 	# In preparation for issue #16
 	#local LATEST_VERSION=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".latest.release")
 	
@@ -200,11 +192,6 @@ configure() {
 
 remove() {
 	echo -n $(custom_date) "Removing server... "
-
-	if server_active; then
-		echo "server active -> aborted"
-		exit $ERROR_SERVER_ACTIVE
-	fi
 
 	rm -r -f "$SERVER_DIR"
 
@@ -249,6 +236,24 @@ require_server_missing() {
 	fi
 }
 
+require_server_active() {
+	require_server_exists
+	
+	if ! server_active; then
+		echo "Server is not running!"
+		exit $ERROR_SERVER_ACTIVE
+	fi
+}
+
+require_server_inactive() {
+	require_server_exists
+	
+	if server_active; then
+		echo "Server is running!"
+		exit $ERROR_SERVER_INACTIVE
+	fi
+}
+
 
 case "$1" in
 	"$CMD_HELP")
@@ -259,15 +264,15 @@ case "$1" in
 		status
 		;;
 	"$CMD_START")
-		require_server_exists
+		require_server_inactive
 		start
 		;;
 	"$CMD_STOP")
-		require_server_exists
+		require_server_active
 		stop
 		;;
 	"$CMD_RESTART")
-		require_server_exists
+		require_server_active
 		stop
 		start
 		;;
@@ -277,11 +282,11 @@ case "$1" in
 		configure
 		;;
 	"$CMD_UPDATE")
-		require_server_exists
+		require_server_inactive
 		download
 		;;
 	"$CMD_DESTROY")
-		require_server_exists
+		require_server_inactive
 		read -p "Delete world data and configuration of server #$SERVER_ID? [y/n]" -n 1 -r; echo ""
 		if [[ $REPLY =~ ^[Yy]$ ]]; then
 			remove
