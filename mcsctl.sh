@@ -2,7 +2,7 @@
 
 
 # Commands
-CMD_STATUS="help"
+CMD_HELP="help"
 CMD_STATUS="status"
 CMD_START="start"
 CMD_STOP="stop"
@@ -13,18 +13,19 @@ CMD_DESTROY="destroy"
 
 # Results
 SUCCESS="0"
-ERROR_ID_MISSING="1"
-ERROR_INSTALL_DIR_MISSING="2"
-ERROR_SERVER_APP_MISSING="3"
-ERROR_SCRAPE_FAILED="4"
-ERROR_DOWNLOAD_FAILED="5"
-ERROR_SERVER_ACTIVE="6"
-ERROR_EULA_FILE_MISSING="7"
-ERROR_PROPERTIES_FILE_MISSING="8"
+ERROR_UNKNOWN_COMMAND="1"
+ERROR_ID_MISSING="2"
+ERROR_INSTALL_DIR_MISSING="3"
+ERROR_SERVER_APP_MISSING="4"
+ERROR_SCRAPE_FAILED="5"
+ERROR_DOWNLOAD_FAILED="6"
+ERROR_SERVER_ACTIVE="7"
+ERROR_EULA_FILE_MISSING="8"
+ERROR_PROPERTIES_FILE_MISSING="9"
 
 # Config
 MCS_USER="mcs"
-MCS_SCRIPT="mcsctl"
+MY_NAME="${0##*/}"
 MIN_RAM="1024" # in MB
 MAX_RAM="1024" # in MB
 TIMEOUT="10" # in seconds
@@ -195,6 +196,19 @@ remove() {
 }
 
 
+help() {
+echo "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
+	$CMD_HELP		Prints this help.
+	$CMD_STATUS	<id>	Status of a server and its screen session.
+	$CMD_START	<id>	Starts a server inside a screen session.
+	$CMD_STOP	<id>	Stops a server and its screen session.
+	$CMD_RESTART	<id>	Restarts a server.
+	$CMD_CREATE	<id>	Creates a server in \"$INSTALL_DIR\".
+	$CMD_UPDATE	<id>	Downloads a new minecraft server executable.
+	$CMD_DESTROY	<id>	Removes all files of a server."
+}
+
+
 # All parameters require a server id
 if [ -z "$SERVER_ID" ]; then
 	echo "Missing server id!"
@@ -207,8 +221,10 @@ if [ "$USER" != "$MCS_USER" ]; then
 	exit
 fi
 
-
 case "$1" in
+	"$CMD_HELP")
+		help
+		;;
 	"$CMD_STATUS")
 		status
 		;;
@@ -233,14 +249,8 @@ case "$1" in
 		remove
 		;;
 	*)
-		echo "Usage:
-
-		$CMD_START	id
-		$CMD_STOP	id
-		$CMD_RESTART	id
-		$CMD_CREATE	id
-		$CMD_UPDATE	id
-		$CMD_DESTROY	id"
+		help
+		exit $ERROR_UNKNOWN_COMMAND
 		;;
 esac
 
