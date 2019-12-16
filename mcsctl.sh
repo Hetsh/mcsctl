@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 
 
+# Commands
+CMD_STATUS="help"
+CMD_STATUS="status"
+CMD_START="start"
+CMD_STOP="stop"
+CMD_RESTART="restart"
+CMD_CREATE="create"
+CMD_UPDATE="update"
+CMD_DESTROY="destroy"
+
+# Results
 SUCCESS="0"
 ERROR_ID_MISSING="1"
 ERROR_INSTALL_DIR_MISSING="2"
@@ -11,28 +22,23 @@ ERROR_SERVER_ACTIVE="6"
 ERROR_EULA_FILE_MISSING="7"
 ERROR_PROPERTIES_FILE_MISSING="8"
 
-CMD_STATUS="status"
-CMD_START="start"
-CMD_STOP="stop"
-CMD_RESTART="restart"
-CMD_CREATE="create"
-CMD_UPDATE="update"
-CMD_DESTROY="destroy"
-
-# Enforce mcs user, but allow access by admins
+# Config
 MCS_USER="mcs"
-if [ "$USER" != "$MCS_USER" ]
-then
-	sudo su -c "$0 $*" -s "/usr/bin/bash" "$MCS_USER"
-	exit
-fi
+MCS_SCRIPT="mcsctl"
+MIN_RAM="1024" # in MB
+MAX_RAM="1024" # in MB
+TIMEOUT="10" # in seconds
+SERVER_ID="$2"
+SERVER_NAME="mserver$SERVER_ID"
+INSTALL_DIR="$HOME/$SERVER_NAME"
+SERVER_APP="$INSTALL_DIR/server.jar"
 
 
-function custom_date {
+custom_date() {
 	echo "$(date +"%Y")-$(date +"%m")-$(date +"%d")_$(date +"%H")-$(date +"%M"):"
 }
 
-function screen_active {
+screen_active() {
 	if [ -n "$(screen -list | grep -o "$SERVER_NAME")" ]; then
 		return $(true)
 	else
@@ -40,19 +46,19 @@ function screen_active {
 	fi
 }
 
-function wait_screen_start {
+wait_screen_start() {
 	while ! screen_active; do
 		sleep 0.1
 	done
 }
 
-function wait_screen_stop {
+wait_screen_stop() {
 	while screen_active; do
 		sleep 0.1
 	done
 }
 
-function server_active {
+server_active() {
 	PROCESSES="$(ps -h)"
 	if [ -n "$(echo "$PROCESSES" | grep -o "$SERVER_APP")" ]; then
 		return $(true)
@@ -61,19 +67,19 @@ function server_active {
 	fi
 }
 
-function wait_server_start {
+wait_server_start() {
 	while ! server_active; do
 		sleep 0.1
 	done
 }
 
-function wait_server_stop {
+wait_server_stop() {
 	while server_active; do
 		sleep 0.1
 	done
 }
 
-function status {
+status() {
 	if screen_active; then
 		echo -n "Screen active, "
 	else
@@ -87,7 +93,7 @@ function status {
 	fi
 }
 
-function start {
+start() {
 	echo -n $(custom_date) "Starting server... "
 
 	if [ ! -d "$INSTALL_DIR" ]; then
@@ -115,7 +121,7 @@ function start {
 	echo "done"
 }
 
-function stop {
+stop() {
 	echo -n $(custom_date) "Stopping server... "
 
 	# stop server application with timeout
@@ -135,7 +141,7 @@ function stop {
 	echo "done"
 }
 
-function download {
+download() {
 	echo -n $(custom_date) "Downloading latest version... "
 
 	if server_active; then
@@ -159,7 +165,7 @@ function download {
 	echo "done"
 }
 
-function configure {
+configure() {
 	echo -n $(custom_date) "Configuring server... "
 
 	# EULA
@@ -175,7 +181,7 @@ function configure {
 	echo "done"
 }
 
-function remove {
+remove() {
 	echo -n $(custom_date) "Removing server... "
 
 	if server_active; then
@@ -189,53 +195,53 @@ function remove {
 }
 
 
-if [ -z "$2" ]; then
+# All parameters require a server id
+if [ -z "$SERVER_ID" ]; then
 	echo "Missing server id!"
 	exit $ERROR_ID_MISSING
 fi
 
-MIN_RAM="1024" # in MB
-MAX_RAM="1024" # in MB
-TIMEOUT="10" # in seconds
-SERVER_ID="$2"
-SERVER_NAME="mserver$SERVER_ID"
-INSTALL_DIR="$HOME/$SERVER_NAME"
-SERVER_APP="$INSTALL_DIR/server.jar"
+# Enforce mcs user, but allow access by admins
+if [ "$USER" != "$MCS_USER" ]; then
+	sudo -u "$MCS_USER" -s "/usr/bin/bash" -c "$0 $*"
+	exit
+fi
+
 
 case "$1" in
-"$CMD_STATUS")
-	status
-	;;
-"$CMD_START")
-	start
-	;;
-"$CMD_STOP")
-	stop
-	;;
-"$CMD_RESTART")
-	stop
-	start
-	;;
-"$CMD_CREATE")
-	download
-	configure
-	;;
-"$CMD_UPDATE")
-	download
-	;;
-"$CMD_DESTROY")
-	remove
-	;;
-*)
-	echo "Usage:
+	"$CMD_STATUS")
+		status
+		;;
+	"$CMD_START")
+		start
+		;;
+	"$CMD_STOP")
+		stop
+		;;
+	"$CMD_RESTART")
+		stop
+		start
+		;;
+	"$CMD_CREATE")
+		download
+		configure
+		;;
+	"$CMD_UPDATE")
+		download
+		;;
+	"$CMD_DESTROY")
+		remove
+		;;
+	*)
+		echo "Usage:
 
-$CMD_START	id
-$CMD_STOP	id
-$CMD_RESTART	id
-$CMD_CREATE	id
-$CMD_UPDATE	id
-$CMD_DESTROY	id"
-	;;
+		$CMD_START	id
+		$CMD_STOP	id
+		$CMD_RESTART	id
+		$CMD_CREATE	id
+		$CMD_UPDATE	id
+		$CMD_DESTROY	id"
+		;;
 esac
 
 exit $SUCCESS
