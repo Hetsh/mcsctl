@@ -228,4 +228,4 @@ $CMD_UPDATE	id"
 	;;
 esac
 
-return $SUCCESS
+exit $SUCCESS
