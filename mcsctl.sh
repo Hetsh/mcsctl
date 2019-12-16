@@ -41,7 +41,7 @@ CMD_DESTROY="destroy"
 SUCCESS="0"
 ERROR_UNKNOWN_COMMAND="1"
 ERROR_ID_MISSING="2"
-ERROR_SERVER_DIR_MISSING="3"
+ERROR_SERVER_MISSING="3"
 ERROR_SERVER_APP_MISSING="4"
 ERROR_SCRAPE_FAILED="5"
 ERROR_DOWNLOAD_FAILED="6"
@@ -112,11 +112,6 @@ status() {
 
 start() {
 	echo -n $(custom_date) "Starting server... "
-
-	if [ ! -d "$SERVER_DIR" ]; then
-		echo "SERVER_DIR nicht vorhanden -> aborted"
-		exit $ERROR_SERVER_DIR_MISSING
-	fi
 
 	if [ ! -e "$SERVER_APP" ]; then
 		echo "SERVER_APP nicht vorhanden -> aborted"
@@ -226,8 +221,17 @@ help() {
 
 require_server_id() {
 	if [ -z "$SERVER_ID" ]; then
-		echo "Missing server id!"
+		echo $(custom_date) "Missing server id!"
 		exit $ERROR_ID_MISSING
+	fi
+}
+
+require_server_exists() {
+	require_server_id
+	
+	if [ ! -d "$SERVER_DIR" ]; then
+		echo $(custom_date) "Server does not exist!"
+		exit $ERROR_SERVER_MISSING
 	fi
 }
 
@@ -237,11 +241,11 @@ case "$1" in
 		help
 		;;
 	"$CMD_STATUS")
-		require_server_id
+		require_server_exists
 		status
 		;;
 	"$CMD_START")
-		require_server_id
+		require_server_exists
 		start
 		;;
 	"$CMD_STOP")
@@ -249,7 +253,7 @@ case "$1" in
 		stop
 		;;
 	"$CMD_RESTART")
-		require_server_id
+		require_server_exists
 		stop
 		start
 		;;
@@ -259,14 +263,14 @@ case "$1" in
 		configure
 		;;
 	"$CMD_UPDATE")
-		require_server_id
+		require_server_exists
 		download
 		;;
 	"$CMD_DESTROY")
 		require_server_id
 		read -p "Delete world data and configuration of server #$SERVER_ID? [y/n]" -n 1 -r; echo ""
 		if [[ $REPLY =~ ^[Yy]$ ]]; then
-			remove	
+			remove
 		fi
 		;;
 	*)
