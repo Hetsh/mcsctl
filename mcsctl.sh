@@ -42,12 +42,13 @@ SUCCESS="0"
 ERROR_UNKNOWN_COMMAND="1"
 ERROR_ID_MISSING="2"
 ERROR_SERVER_MISSING="3"
-ERROR_SERVER_APP_MISSING="4"
-ERROR_SCRAPE_FAILED="5"
-ERROR_DOWNLOAD_FAILED="6"
-ERROR_SERVER_ACTIVE="7"
-ERROR_EULA_FILE_MISSING="8"
-ERROR_PROPERTIES_FILE_MISSING="9"
+ERROR_SERVER_EXISTS="4"
+ERROR_SERVER_APP_MISSING="5"
+ERROR_SCRAPE_FAILED="6"
+ERROR_DOWNLOAD_FAILED="7"
+ERROR_SERVER_ACTIVE="8"
+ERROR_EULA_FILE_MISSING="9"
+ERROR_PROPERTIES_FILE_MISSING="10"
 # /Results
 
 
@@ -205,7 +206,7 @@ remove() {
 		exit $ERROR_SERVER_ACTIVE
 	fi
 
-	rm -rf "$SERVER_DIR"
+	rm -r -f "$SERVER_DIR"
 
 	echo "done"
 }
@@ -239,6 +240,15 @@ require_server_exists() {
 	fi
 }
 
+require_server_missing() {
+	require_server_id
+	
+	if [ -d "$SERVER_DIR" ]; then
+		echo $(custom_date) "Server already exists!"
+		exit $ERROR_SERVER_EXISTS
+	fi
+}
+
 
 case "$1" in
 	"$CMD_HELP")
@@ -253,7 +263,7 @@ case "$1" in
 		start
 		;;
 	"$CMD_STOP")
-		require_server_id
+		require_server_exists
 		stop
 		;;
 	"$CMD_RESTART")
@@ -262,7 +272,7 @@ case "$1" in
 		start
 		;;
 	"$CMD_CREATE")
-		require_server_id
+		require_server_missing
 		download
 		configure
 		;;
@@ -271,7 +281,7 @@ case "$1" in
 		download
 		;;
 	"$CMD_DESTROY")
-		require_server_id
+		require_server_exists
 		read -p "Delete world data and configuration of server #$SERVER_ID? [y/n]" -n 1 -r; echo ""
 		if [[ $REPLY =~ ^[Yy]$ ]]; then
 			remove
