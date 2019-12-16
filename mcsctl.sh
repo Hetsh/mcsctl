@@ -195,7 +195,6 @@ remove() {
 	echo "done"
 }
 
-
 help() {
 echo "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
 	$CMD_HELP		Prints this help.
@@ -204,16 +203,17 @@ echo "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$
 	$CMD_STOP	<id>	Stops a server and its screen session.
 	$CMD_RESTART	<id>	Restarts a server.
 	$CMD_CREATE	<id>	Creates a server in \"$INSTALL_DIR\".
-	$CMD_UPDATE	<id>	Downloads a new minecraft server executable.
+	$CMD_UPDATE	<id>	Downloads a new minecraft server executable for the specified server.
 	$CMD_DESTROY	<id>	Removes all files of a server."
 }
 
+require_server_id() {
+	if [ -z "$SERVER_ID" ]; then
+		echo "Missing server id!"
+		exit $ERROR_ID_MISSING
+	fi
+}
 
-# All parameters require a server id
-if [ -z "$SERVER_ID" ]; then
-	echo "Missing server id!"
-	exit $ERROR_ID_MISSING
-fi
 
 # Enforce mcs user, but allow access by admins
 if [ "$USER" != "$MCS_USER" ]; then
@@ -226,26 +226,33 @@ case "$1" in
 		help
 		;;
 	"$CMD_STATUS")
+		require_server_id
 		status
 		;;
 	"$CMD_START")
+		require_server_id
 		start
 		;;
 	"$CMD_STOP")
+		require_server_id
 		stop
 		;;
 	"$CMD_RESTART")
+		require_server_id
 		stop
 		start
 		;;
 	"$CMD_CREATE")
+		require_server_id
 		download
 		configure
 		;;
 	"$CMD_UPDATE")
+		require_server_id
 		download
 		;;
 	"$CMD_DESTROY")
+		require_server_id
 		remove
 		;;
 	*)
