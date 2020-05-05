@@ -14,7 +14,7 @@ The following packages must be installed for the script to work properly:
 * bash
 * grep
 * java-runtime-headless>=8
-* netcat
+* openbsd-netcat
 * jq
 * screen
 * sudo
