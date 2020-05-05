@@ -112,74 +112,6 @@ wait_server_stop() {
 	done
 }
 
-status() {
-	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server "
-	if server_active || screen_active; then
-		# Send server list ping https://wiki.vg/Server_List_Ping to query online players and remove binary part of the response
-		RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 $((25564 + $SERVER_ID)) | cat -v - | sed 's/^[^{]*{/{/')
-		echo "active ($(echo "$RESPONSE" | jq -r .players.online)/$(echo "$RESPONSE" | jq -r .players.max))"
-	else
-		echo "inactive"
-	fi
-}
-
-start() {
-	echo -n $(date "+$DATE_FORMAT:") "Starting server... "
-
-	# start screen session
-	if ! screen_active; then
-		screen -dmS "$SERVER_NAME"
-		wait_screen_start
-	fi
-
-	# start server application in working directory
-	if ! server_active; then
-		screen -S "$SERVER_NAME" -p 0 -X stuff "cd \"$SERVER_DIR\"; java -Xms${MIN_RAM}M -Xmx${MAX_RAM}M -jar \"$SERVER_APP\" nogui\n"
-		wait_server_start
-	fi
-
-	echo "done"
-}
-
-stop() {
-	echo -n $(date "+$DATE_FORMAT:") "Stopping server... "
-
-	# stop server application with timeout
-	if server_active; then
-		screen -S "$SERVER_NAME" -p 0 -X stuff "say ATTENTION! Server will be shut down in $TIMEOUT seconds!\n"
-		sleep "$TIMEOUT"
-		screen -S "$SERVER_NAME" -p 0 -X stuff "stop\n"
-		wait_server_stop
-	fi
-
-	# stop screen session
-	if screen_active; then
-		screen -S "$SERVER_NAME" -p 0 -X stuff "exit\n"
-		wait_screen_stop
-	fi
-
-	echo "done"
-}
-
-console() {
-	echo -n $(date "+$DATE_FORMAT:") "Connecting to screen session... "
-
-	screen -r "$SERVER_NAME"
-
-	echo "done"
-}
-
-forward_command() {
-	echo -n $(date "+$DATE_FORMAT:") "Forwarding command to server... "
-
-	screen -S "$SERVER_NAME" -p 0 -X stuff "$SERVER_COMMAND\n"
-	local KEYWORD="/\[$(date +%H:%M:%S)\]/p"
-	echo "done"
-
-	sleep 0.5
-	sed -n "$KEYWORD" "$SERVER_DIR/logs/latest.log"
-}
-
 download() {
 	local CURRENT_VERSION="$(cat "$SERVER_VERSION" 2> /dev/null)"
 	local LATEST_VERSION=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".latest.release")
@@ -203,8 +135,76 @@ download() {
 	echo "$LATEST_VERSION" > "$SERVER_VERSION"
 }
 
+status() {
+	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server "
+	if server_active || screen_active; then
+		# Send server list ping https://wiki.vg/Server_List_Ping to query online players and remove binary part of the response
+		RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 $((25564 + $SERVER_ID)) | cat -v - | sed 's/^[^{]*{/{/')
+		echo "active ($(echo "$RESPONSE" | jq -r .players.online)/$(echo "$RESPONSE" | jq -r .players.max))"
+	else
+		echo "inactive"
+	fi
+}
+
+start() {
+	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Starting server... "
+
+	# start screen session
+	if ! screen_active; then
+		screen -dmS "$SERVER_NAME"
+		wait_screen_start
+	fi
+
+	# start server application in working directory
+	if ! server_active; then
+		screen -S "$SERVER_NAME" -p 0 -X stuff "cd \"$SERVER_DIR\"; java -Xms${MIN_RAM}M -Xmx${MAX_RAM}M -jar \"$SERVER_APP\" nogui\n"
+		wait_server_start
+	fi
+
+	echo "done"
+}
+
+stop() {
+	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Stopping server... "
+
+	# stop server application with timeout
+	if server_active; then
+		screen -S "$SERVER_NAME" -p 0 -X stuff "say ATTENTION! Server will be shut down in $TIMEOUT seconds!\n"
+		sleep "$TIMEOUT"
+		screen -S "$SERVER_NAME" -p 0 -X stuff "stop\n"
+		wait_server_stop
+	fi
+
+	# stop screen session
+	if screen_active; then
+		screen -S "$SERVER_NAME" -p 0 -X stuff "exit\n"
+		wait_screen_stop
+	fi
+
+	echo "done"
+}
+
+console() {
+	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Connecting to screen session... "
+
+	screen -r "$SERVER_NAME"
+
+	echo "done"
+}
+
+forward_command() {
+	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Forwarding command... "
+
+	screen -S "$SERVER_NAME" -p 0 -X stuff "$SERVER_COMMAND\n"
+	local KEYWORD="/\[$(date +%H:%M:%S)\]/p"
+	echo "done"
+
+	sleep 0.5
+	sed -n "$KEYWORD" "$SERVER_DIR/logs/latest.log"
+}
+
 create() {
-	echo -n $(date "+$DATE_FORMAT:") "Creating server... "
+	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Creating server... "
 
 	download
 
@@ -218,7 +218,7 @@ create() {
 }
 
 update() {
-	echo -n $(date "+$DATE_FORMAT:") "Updating server... "
+	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Updating server... "
 
 	download
 
@@ -226,7 +226,7 @@ update() {
 }
 
 remove() {
-	echo -n $(date "+$DATE_FORMAT:") "Removing server... "
+	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Removing server... "
 
 	rm -r -f "$SERVER_DIR"
 
