@@ -3,7 +3,7 @@
 # CLI args
 readonly CMD="$1"
 readonly SERVER_ID="$2"
-readonly SERVER_COMMAND="$3"
+readonly SERVER_COMMAND="${@:3}"
 # /CLI args
 
 # Commands
