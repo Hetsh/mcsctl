@@ -16,9 +16,9 @@ The following packages must be installed for the script to work properly:
 * java-runtime-headless>=8
 * openbsd-netcat
 * jq
+* sed
 * screen
 * sudo
-* systemd
 
 Non-Arch-Linux users can easily install it if you follow these steps as `root`:
 ```bash
