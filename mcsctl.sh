@@ -115,8 +115,8 @@ wait_server_stop() {
 status() {
 	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server "
 	if server_active || screen_active; then
-		# Send server list ping https://wiki.vg/Server_List_Ping to query online players
-		RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 $((25564 + $SERVER_ID)) | tail -c +5)
+		# Send server list ping https://wiki.vg/Server_List_Ping to query online players and remove binary part of the response
+		RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 $((25564 + $SERVER_ID)) | cat -v - | sed 's/^[^{]*{/{/')
 		echo "active ($(echo "$RESPONSE" | jq -r .players.online)/$(echo "$RESPONSE" | jq -r .players.max))"
 	else
 		echo "inactive"
