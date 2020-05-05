@@ -115,7 +115,8 @@ wait_server_stop() {
 status() {
 	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server "
 	if server_active || screen_active; then
-		echo "active"
+		RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 $((25564 + $SERVER_ID)) | tail -c +5)
+		echo "active ($(echo "$RESPONSE" | jq -r .players.online)/$(echo "$RESPONSE" | jq -r .players.max))"
 	else
 		echo "inactive"
 	fi
@@ -173,7 +174,7 @@ forward_command() {
 	screen -S "$SERVER_NAME" -p 0 -X stuff "$SERVER_COMMAND\n"
 	local KEYWORD="/\[$(date +%H:%M:%S)\]/p"
 	echo "done"
-	
+
 	sleep 0.5
 	sed -n "$KEYWORD" "$SERVER_DIR/logs/latest.log"
 }
@@ -185,7 +186,7 @@ download() {
 		echo "already on latest release."
 		exit $ERROR_SERVER_LATEST
 	fi
-	
+
 	local METADATA_URL=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".versions[] | select(.id==\"$LATEST_VERSION\") | .url")
 	local SERVER_URL=$(curl -s -L "$METADATA_URL" | jq -r ".downloads.server.url")
 	if [ -z "$SERVER_URL" ]; then
@@ -203,7 +204,7 @@ download() {
 
 create() {
 	echo -n $(date "+$DATE_FORMAT:") "Creating server... "
-	
+
 	download
 
 	# Just accept the EULA, you wouldn't read it anyway :P
@@ -262,7 +263,7 @@ require_command() {
 
 require_server_exists() {
 	require_server_id
-	
+
 	if [ ! -d "$SERVER_DIR" ]; then
 		echo $(date "+$DATE_FORMAT:") "Server does not exist!"
 		exit $ERROR_SERVER_MISSING
@@ -271,7 +272,7 @@ require_server_exists() {
 
 require_server_active() {
 	require_server_exists
-	
+
 	if ! server_active; then
 		echo $(date "+$DATE_FORMAT:") "Server is not running!"
 		exit $ERROR_SERVER_ACTIVE
@@ -280,7 +281,7 @@ require_server_active() {
 
 require_server_inactive() {
 	require_server_exists
-	
+
 	if server_active; then
 		echo $(date "+$DATE_FORMAT:") "Server is running!"
 		exit $ERROR_SERVER_INACTIVE
@@ -305,7 +306,7 @@ if [ "$SERVER_ID" == "all" ]; then
 		echo $(date "+$DATE_FORMAT:") "No servers exist!"
 		exit $ERROR_NO_SERVERS
 	fi
-	
+
 	for NEXT_ID in $SERVER_LIST; do
 		NEXT_ID=${NEXT_ID##*mcserver}
 		NEXT_ID=${NEXT_ID%%/*}
