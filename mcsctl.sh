@@ -115,6 +115,7 @@ wait_server_stop() {
 status() {
 	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server "
 	if server_active || screen_active; then
+		# Send server list ping https://wiki.vg/Server_List_Ping to query online players
 		RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 $((25564 + $SERVER_ID)) | tail -c +5)
 		echo "active ($(echo "$RESPONSE" | jq -r .players.online)/$(echo "$RESPONSE" | jq -r .players.max))"
 	else
@@ -236,7 +237,7 @@ help() {
 	local MY_NAME="${0##*/}"
 	echo -e "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CONSOLE|$CMD_COMMAND|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
 		\r$CMD_HELP			Prints this help.
-		\r$CMD_STATUS	<id/all>	Lists status of server(s).
+		\r$CMD_STATUS	<id/all>	Lists status of server(s) and online players.
 		\r$CMD_START	<id/all>	Starts server(s) inside screen session(s).
 		\r$CMD_STOP	<id/all>	Stops server(s) and screen session(s).
 		\r$CMD_RESTART	<id/all>	Restart server(s).

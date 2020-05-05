@@ -14,6 +14,7 @@ The following packages must be installed for the script to work properly:
 * bash
 * grep
 * java-runtime-headless>=8
+* netcat
 * jq
 * screen
 * sudo
@@ -24,15 +25,14 @@ Non-Arch-Linux users can easily install it if you follow these steps as `root`:
 curl -L https://github.com/Hetsh/mcsctl/archive/master.tar.gz | bsdtar -xpf -
 install -Dm 644 mcsctl-master/mcs@.service <PATH_TO_UNIT> # usually "/usr/lib/systemd/system/mcs@.service"
 install -Dm 755 mcsctl-master/mcsctl.sh <PATH_TO_BIN> # usually /usr/bin/mcsctl
-sed -n '/\# Mutable config/,/\# \/Mutable config/p' mcsctl-master/mcsctl.sh | head -n -1 | tail -n +2 > mcsctl-master/mcsctl.conf.bak
+sed -n '/\# Mutable config/,/\# \/Mutable config/p' mcsctl-master/mcsctl.sh | head -n -1 | tail -n +2 > mcsctl-master/mcsctl.conf.bak # strips config from script
 install -Dm 644 mcsctl-master/mcsctl.conf.bak /etc/mcsctl.conf.bak
 rm -r mcsctl-master
 ```
 
 Per default, the minecraft servers are run as a different, low privileged user that you need to create:
 ```bash
-groupadd mcs
-useradd -m -g mcs -s /usr/bin/nologin mcs
+useradd --user-group --comment 'Minecraft user' --shell /usr/bin/nologin --create-home mcs
 passwd -l mcs
 ```
 
@@ -45,7 +45,7 @@ These can be specified by the user and must be a positive number.
 $ mcsctl help
 Usage: mcsctl {help|status|start|stop|restart|console|command|create|update|destroy}
 help			Prints this help.
-status	<id/all>	Lists status of server(s).
+status	<id/all>	Lists status of server(s) and online players.
 start	<id/all>	Starts server(s) inside screen session(s).
 stop	<id/all>	Stops server(s) and screen session(s).
 restart	<id/all>	Restart server(s).
