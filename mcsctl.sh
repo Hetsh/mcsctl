@@ -266,7 +266,7 @@ require_server_exists() {
 	require_server_id
 
 	if [ ! -d "$SERVER_DIR" ]; then
-		echo $(date "+$DATE_FORMAT:") "Server does not exist!"
+		echo $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server does not exist!"
 		exit $ERROR_SERVER_MISSING
 	fi
 }
@@ -275,7 +275,7 @@ require_server_active() {
 	require_server_exists
 
 	if ! server_active; then
-		echo $(date "+$DATE_FORMAT:") "Server is not running!"
+		echo $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server is not running!"
 		exit $ERROR_SERVER_ACTIVE
 	fi
 }
@@ -284,7 +284,7 @@ require_server_inactive() {
 	require_server_exists
 
 	if server_active; then
-		echo $(date "+$DATE_FORMAT:") "Server is running!"
+		echo $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server is running!"
 		exit $ERROR_SERVER_INACTIVE
 	fi
 }
@@ -350,7 +350,7 @@ else
 			if [ ! -d "$SERVER_DIR" ]; then
 				create
 			else
-				echo $(date "+$DATE_FORMAT:") "Server already exists!"
+				echo $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server already exists!"
 				exit $ERROR_SERVER_EXISTS
 			fi
 			;;
