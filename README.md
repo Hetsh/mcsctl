@@ -13,7 +13,7 @@ This simple bash script helps you manage minecraft servers on Linux. It is desig
 The following packages must be installed for the script to work properly:
 * bash
 * grep
-* java-runtime-headless>=8
+* java-runtime>=16
 * openbsd-netcat
 * jq
 * sed
