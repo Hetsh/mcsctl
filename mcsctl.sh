@@ -143,9 +143,9 @@ status() {
 	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server "
 	if server_active || screen_active; then
 		# Send server list ping https://wiki.vg/Server_List_Ping to query online players and remove binary part of the response
-		RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 $((25564 + $SERVER_ID)) | cat -v - | sed 's/^[^{]*{/{/')
-		PLAYERS_ACTIVE=$(echo "$RESPONSE" | jq -r .players.online)
-		PLAYERS_MAX=$(echo "$RESPONSE" | jq -r .players.max)
+		local RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 $((25564 + $SERVER_ID)) | cat -v - | sed 's/^[^{]*{/{/')
+		local PLAYERS_ACTIVE=$(echo "$RESPONSE" | jq -r .players.online)
+		local PLAYERS_MAX=$(echo "$RESPONSE" | jq -r .players.max)
 		echo "active ($PLAYERS_ACTIVE/$PLAYERS_MAX)"
 	else
 		echo "inactive"
