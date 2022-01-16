@@ -112,8 +112,13 @@ wait_server_stop() {
 }
 
 download() {
-	local CURRENT_VERSION="$(cat "$SERVER_VERSION" 2> /dev/null)"
 	local LATEST_VERSION=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".latest.release")
+	if [ -z "$LATEST_VERSION" ]; then
+		echo "failed to scrape version -> aborted"
+		exit $ERROR_SCRAPE_FAILED
+	fi
+
+	local CURRENT_VERSION="$(cat "$SERVER_VERSION" 2> /dev/null)"
 	if [ "$CURRENT_VERSION" = "$LATEST_VERSION" ]; then
 		echo "already on latest release."
 		exit $ERROR_SERVER_LATEST
