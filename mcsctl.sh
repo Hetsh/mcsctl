@@ -240,16 +240,16 @@ remove() {
 help() {
 	local MY_NAME="${0##*/}"
 	echo -e "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CONSOLE|$CMD_COMMAND|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
-		\r$CMD_HELP			Prints this help.
-		\r$CMD_STATUS	<id/all>	Lists status of server(s) and online players.
-		\r$CMD_START	<id/all>	Starts server(s) inside screen session(s).
-		\r$CMD_STOP	<id/all>	Stops server(s) and screen session(s).
-		\r$CMD_RESTART	<id/all>	Restart server(s).
-		\r$CMD_CONSOLE	<id>		Connect to the screen session of a server.
-		\r$CMD_COMMAND	<id/all> <cmd>	Forward <cmd> to specified server(s).
-		\r$CMD_CREATE	<id>		Creates a server in the configured SERVER_ROOT (default: /home/$MCS_USER).
-		\r$CMD_UPDATE	<id/all>	Downloads a new minecraft server executable for server(s).
-		\r$CMD_DESTROY	<id/all>	Removes all files of server(s)."
+		\r$CMD_HELP\t\t\tPrints this help.
+		\r$CMD_STATUS\t<id/all>\tLists status of server(s) and online players.
+		\r$CMD_START\t<id/all>\tStarts server(s) inside screen session(s).
+		\r$CMD_STOP\t<id/all>\tStops server(s) and screen session(s).
+		\r$CMD_RESTART\t<id/all>\tRestart server(s).
+		\r$CMD_CONSOLE\t<id>\t\tConnect to the screen session of a server.
+		\r$CMD_COMMAND\t<id/all> <cmd>\tForward <cmd> to specified server(s).
+		\r$CMD_CREATE\t<id>\t\tCreates a server in the configured SERVER_ROOT (default: /home/$MCS_USER).
+		\r$CMD_UPDATE\t<id/all>\tDownloads a new minecraft server executable for server(s).
+		\r$CMD_DESTROY\t<id/all>\tRemoves all files of server(s)."
 }
 
 require_server_id() {
