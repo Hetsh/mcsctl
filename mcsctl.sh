@@ -92,8 +92,7 @@ wait_screen_stop() {
 
 server_active() {
 	# uses unique path to server application to find process
-	local PROCESSES="$(ps -h)"
-	if [ -n "$(echo "$PROCESSES" | grep -o "$SERVER_APP")" ]; then
+	if [ -n "$(ps -h | grep -o "$SERVER_APP")" ]; then
 		return $(true)
 	else
 		return $(false)
