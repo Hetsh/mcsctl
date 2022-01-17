@@ -37,6 +37,7 @@ readonly ERROR_PROPERTIES_FILE_MISSING="13"
 readonly ERROR_MULTI_CONSOLE="14"
 readonly ERROR_MULTI_CREATE="15"
 readonly ERROR_NO_SERVERS="16"
+readonly ERROR_JAVA_OLD="17"
 # /Results
 
 # Enforce mcs user (except for help command)
@@ -111,6 +112,13 @@ wait_server_stop() {
 	done
 }
 
+version_lower() {
+	VERSION_A="$1"
+	VERSION_B="$2"
+
+	echo -e "$VERSION_A\n$VERSION_B" | sort --version-sort --check=quiet
+}
+
 download() {
 	local LATEST_VERSION=$(curl -s -L "https://launchermeta.mojang.com/mc/game/version_manifest.json" | jq -r ".latest.release")
 	if [ -z "$LATEST_VERSION" ]; then
@@ -154,6 +162,14 @@ status() {
 
 start() {
 	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Starting server... "
+
+	# starting with minecraft 1.17, java 16 the is minimum version
+	local MC_VERSION="$(cat "$SERVER_VERSION" 2> /dev/null)"
+	local JAVA_VERSION="$(java --version | head -n 1 | cut -d ' ' -f 2)"
+	if version_lower "1.17" "$MC_VERSION" && version_lower "$JAVA_VERSION" "16"; then
+		echo "java version incompatible -> aborted"
+		exit $ERROR_JAVA_INCOMPATIBLE
+	fi
 
 	# start screen session
 	if ! screen_active; then
