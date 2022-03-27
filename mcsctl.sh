@@ -94,7 +94,7 @@ wait_screen_stop() {
 
 server_active() {
 	# uses unique path to server application to find process
-	if [ -n "$(ps -h | grep -o "$SERVER_APP")" ]; then
+	if pgrep -f -u "$MCS_USER" "$SERVER_APP" > /dev/null; then
 		return $(true)
 	else
 		return $(false)
