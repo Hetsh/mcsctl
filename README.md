@@ -68,4 +68,13 @@ The sample config file that was generated during the installation contains the d
 ```bash
 cp /etc/mcsctl.conf.bak /etc/mcsctl.conf
 ```
-This config file is not used to configure your minecraft servers.
+This config file contains two sections.
+The first section configures runtime parameters for `mcsctl` itself, while the second section configures initial server parameters.
+
+Note that the server configuration is only applied when a server is first created; later changes need to be made directly in the server files.
+
+### Launch script
+
+On server creation, the script `launch.sh` is created.
+This can be edited to change the server arguments or executable.
+
