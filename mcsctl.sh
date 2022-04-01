@@ -48,11 +48,14 @@ if [ -n "$CMD" ] && [ "$CMD" != "$CMD_HELP" ] && [ "$USER" != "$MCS_USER" ]; the
 fi
 
 # Mutable config
-MIN_RAM="1024"
-MAX_RAM="1024"
+# mcsctl configuration
 TIMEOUT="10"
 SERVER_ROOT="$HOME"
 DATE_FORMAT="%Y_%m_%d-%H_%M_%S"
+
+# initial server configuration
+MIN_RAM="1024"
+MAX_RAM="1024"
 if [ -n "$SERVER_ID" ] && [ "$SERVER_ID" != "all" ]; then
 	INITIAL_SERVER_PROPERTIES="server-port=$((25564 + $SERVER_ID))
 	\rmotd=Welcome to MC-Server #$SERVER_ID.
@@ -68,6 +71,8 @@ readonly SERVER_NAME="mcserver$SERVER_ID"
 readonly SERVER_DIR="$SERVER_ROOT/$SERVER_NAME"
 readonly SERVER_APP_NAME="server.jar"
 readonly SERVER_APP="$SERVER_DIR/$SERVER_APP_NAME"
+readonly SERVER_SCRIPT_NAME="launch.sh"
+readonly SERVER_SCRIPT="$SERVER_DIR/$SERVER_SCRIPT_NAME"
 readonly SERVER_VERSION="$SERVER_DIR/server.version"
 # /Immutable config
 
@@ -93,8 +98,8 @@ wait_screen_stop() {
 }
 
 server_active() {
-	# uses unique path to server application to find process
-	if pgrep -f -u "$MCS_USER" "$SERVER_APP" > /dev/null; then
+	# uses unique path to server application or launch script to find process
+	if pgrep -f -u "$MCS_USER" "$SERVER_SCRIPT|$SERVER_APP" > /dev/null; then
 		return $(true)
 	else
 		return $(false)
@@ -148,6 +153,14 @@ download() {
 	echo "$LATEST_VERSION" > "$SERVER_VERSION"
 }
 
+create_launch_script() {
+	cat <<-EOF > "$SERVER_SCRIPT"
+	#!/bin/sh
+	java -Xms${MIN_RAM}M -Xmx${MAX_RAM}M -jar "$SERVER_APP" nogui
+	EOF
+	chmod +x "$SERVER_SCRIPT"
+}
+
 status() {
 	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server "
 	if server_active; then
@@ -187,7 +200,10 @@ start() {
 
 	# start server application in working directory
 	if ! server_active; then
-		screen -S "$SERVER_NAME" -p 0 -X stuff "cd \"$SERVER_DIR\"; java -Xms${MIN_RAM}M -Xmx${MAX_RAM}M -jar \"$SERVER_APP\" nogui\n"
+		if [ ! -x "$SERVER_SCRIPT" ]; then
+			create_launch_script
+		fi
+		screen -S "$SERVER_NAME" -p 0 -X stuff "cd \"$SERVER_DIR\"; \"$SERVER_SCRIPT\"\n"
 		wait_server_start
 	fi
 
@@ -243,6 +259,9 @@ create() {
 
 	# Properties
 	echo -e "$INITIAL_SERVER_PROPERTIES" > "$SERVER_DIR/server.properties"
+
+	# Launch script
+	create_launch_script
 
 	echo "done"
 }
