@@ -53,9 +53,8 @@ MAX_RAM="1024"
 TIMEOUT="10"
 SERVER_ROOT="$HOME"
 DATE_FORMAT="%Y_%m_%d-%H_%M_%S"
-BASE_PORT=25564
 if [ -n "$SERVER_ID" ] && [ "$SERVER_ID" != "all" ]; then
-	INITIAL_SERVER_PROPERTIES="server-port=$(($BASE_PORT + $SERVER_ID))
+	INITIAL_SERVER_PROPERTIES="server-port=$((25564 + $SERVER_ID))
 	\rmotd=Welcome to MC-Server #$SERVER_ID.
 	\rplayer-idle-timeout=5
 	\rsnooper-enabled=false
@@ -152,11 +151,16 @@ download() {
 status() {
 	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server "
 	if server_active; then
-		# Send server list ping https://wiki.vg/Server_List_Ping to query online players and remove binary part of the response
-		local RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 $(($BASE_PORT + $SERVER_ID)) | cat -v - | sed 's/^[^{]*{/{/')
-		local PLAYERS_ACTIVE=$(echo "$RESPONSE" | jq -r .players.online)
-		local PLAYERS_MAX=$(echo "$RESPONSE" | jq -r .players.max)
-		echo "active ($PLAYERS_ACTIVE/$PLAYERS_MAX)"
+		SERVER_PORT=$(grep -s server-port "$SERVER_DIR/server.properties" | tail -n1 | cut -d'=' -f2)
+		if [ -n "$SERVER_PORT" ]; then
+			# Send server list ping https://wiki.vg/Server_List_Ping to query online players and remove binary part of the response
+			local RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 "$SERVER_PORT" | cat -v - | sed 's/^[^{]*{/{/')
+			local PLAYERS_ACTIVE=$(echo "$RESPONSE" | jq -r .players.online)
+			local PLAYERS_MAX=$(echo "$RESPONSE" | jq -r .players.max)
+			echo "active ($PLAYERS_ACTIVE/$PLAYERS_MAX)"
+		else
+			echo "active (players unknown)"
+		fi
 	elif screen_active; then
 		echo "inactive, screen running"
 	else
