@@ -151,12 +151,14 @@ download() {
 
 status() {
 	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server "
-	if server_active || screen_active; then
+	if server_active; then
 		# Send server list ping https://wiki.vg/Server_List_Ping to query online players and remove binary part of the response
 		local RESPONSE=$(echo -n -e '\x0f\x00\x2f\x09\x6c\x6f\x63\x61\x6c\x68\x6f\x73\x74\x63\xdd\x01\x01\x00' | nc -q 0 127.0.0.1 $(($BASE_PORT + $SERVER_ID)) | cat -v - | sed 's/^[^{]*{/{/')
 		local PLAYERS_ACTIVE=$(echo "$RESPONSE" | jq -r .players.online)
 		local PLAYERS_MAX=$(echo "$RESPONSE" | jq -r .players.max)
 		echo "active ($PLAYERS_ACTIVE/$PLAYERS_MAX)"
+	elif screen_active; then
+		echo "inactive, screen running"
 	else
 		echo "inactive"
 	fi
@@ -192,7 +194,7 @@ stop() {
 	echo -n $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Stopping server... "
 
 	# stop server application with timeout
-	if server_active; then
+	if screen_active && server_active; then
 		screen -S "$SERVER_NAME" -p 0 -X stuff "say ATTENTION! Server will be shut down in $TIMEOUT seconds!\n"
 		sleep "$TIMEOUT"
 		screen -S "$SERVER_NAME" -p 0 -X stuff "stop\n"
@@ -301,7 +303,11 @@ require_server_active() {
 	if ! server_active; then
 		echo $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server is not running!"
 		exit $ERROR_SERVER_ACTIVE
+	elif ! screen_active; then
+		echo $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server is running outside of screen!"
+		exit $ERROR_SERVER_ACTIVE
 	fi
+
 }
 
 require_server_inactive() {
@@ -313,6 +319,14 @@ require_server_inactive() {
 	fi
 }
 
+require_screen_active() {
+	require_server_exists
+
+	if ! screen_active; then
+		echo $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Screen session is not running!"
+		exit $ERROR_SERVER_ACTIVE
+	fi
+}
 
 if [ "$SERVER_ID" == "all" ]; then
 	case "$CMD" in
@@ -361,7 +375,7 @@ else
 			start
 			;;
 		"$CMD_CONSOLE")
-			require_server_active
+			require_screen_active
 			console
 			;;
 		"$CMD_COMMAND")
