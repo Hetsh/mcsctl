@@ -73,7 +73,8 @@ readonly SERVER_VERSION="$SERVER_DIR/server.version"
 # /Immutable config
 
 screen_active() {
-	if [ -n "$(screen -list | grep -o "$SERVER_NAME")" ]; then
+	# look for tab indicating the end of the name to avoid prefix issues
+	if screen -list | grep "$SERVER_NAME"$'\t' > /dev/null; then
 		return $(true)
 	else
 		return $(false)
@@ -325,7 +326,7 @@ if [ "$SERVER_ID" == "all" ]; then
 			;;
 	esac
 
-	SERVER_LIST=$(find "$SERVER_ROOT" -type f -name "$SERVER_APP_NAME" | sort -n)
+	SERVER_LIST=$(find "$SERVER_ROOT" -type f -name "$SERVER_APP_NAME" | sort -V)
 	if [ -z "$SERVER_LIST" ]; then
 		echo $(date "+$DATE_FORMAT:") "No servers exist!"
 		exit $ERROR_NO_SERVERS
