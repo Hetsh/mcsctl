@@ -77,4 +77,5 @@ Note that the server configuration is only applied when a server is first create
 
 On server creation, the script `launch.sh` is created.
 This can be edited to change the server arguments or executable.
+The `exec` command should not be used in launch scripts, because it prevents server status from being detected correctly.
 
