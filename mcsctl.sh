@@ -362,15 +362,13 @@ if [ "$SERVER_ID" == "all" ]; then
 			;;
 	esac
 
-	SERVER_LIST=$(find "$SERVER_ROOT" -type f -name "$SERVER_APP_NAME" | sort -V)
-	if [ -z "$SERVER_LIST" ]; then
+	ID_LIST=$(find "$SERVER_ROOT" -type f -name "$SERVER_APP_NAME" -o -name "$SERVER_SCRIPT_NAME" 2>/dev/null | sed "s|${SERVER_ROOT}/\?mcserver||; s|/.*||" | sort -n -u)
+	if [ -z "$ID_LIST" ]; then
 		echo $(date "+$DATE_FORMAT:") "No servers exist!"
 		exit $ERROR_NO_SERVERS
 	fi
 
-	for NEXT_ID in $SERVER_LIST; do
-		NEXT_ID=${NEXT_ID##*mcserver}
-		NEXT_ID=${NEXT_ID%%/*}
+	for NEXT_ID in $ID_LIST; do
 		"$0" "$CMD" "$NEXT_ID" "$SERVER_COMMAND"
 	done
 	exit $SUCCESS
