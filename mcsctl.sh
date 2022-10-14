@@ -320,8 +320,8 @@ print_inactive() {
 
 help() {
 	local MY_NAME="${0##*/}"
-	echo -e "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CONSOLE|$CMD_COMMAND|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY|$CMD_PRINT_EXISTS|$CMD_PRINT_SCREEN|$CMD_PRINT_ACTIVE}
-		\r$CMD_HELPPrints this help.
+	echo -e "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CONSOLE|$CMD_COMMAND|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY|$CMD_PRINT_EXISTS|$CMD_PRINT_SCREEN|$CMD_PRINT_ACTIVE|$CMD_PRINT_INACTIVE}
+		\r$CMD_HELP                          Prints this help.
 		\r$CMD_STATUS         <id/all>       Lists status of server(s) and online players.
 		\r$CMD_START          <id/all>       Starts server(s) inside screen session(s).
 		\r$CMD_STOP           <id/all>       Stops server(s) and screen session(s).
@@ -445,7 +445,7 @@ else
 			;;
 		"$CMD_CREATE")
 			require_server_id
-			if [ ! -d "$SERVER_DIR" ]; then
+			if ! server_exists; then
 				create
 			else
 				echo $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server already exists!"
