@@ -17,6 +17,10 @@ readonly CMD_COMMAND="command"
 readonly CMD_CREATE="create"
 readonly CMD_UPDATE="update"
 readonly CMD_DESTROY="destroy"
+readonly CMD_PRINT_EXISTS="print-exists"
+readonly CMD_PRINT_SCREEN="print-screen"
+readonly CMD_PRINT_ACTIVE="print-active"
+readonly CMD_PRINT_INACTIVE="print-inactive"
 # /Commands
 
 # Results
@@ -100,6 +104,14 @@ wait_screen_stop() {
 server_active() {
 	# uses unique path to server application or launch script to find process
 	if pgrep -f -u "$MCS_USER" "$SERVER_SCRIPT|$SERVER_APP" > /dev/null; then
+		return $(true)
+	else
+		return $(false)
+	fi
+}
+
+server_exists() {
+	if [ -d "$SERVER_DIR" ]; then
 		return $(true)
 	else
 		return $(false)
@@ -282,19 +294,47 @@ remove() {
 	echo "done"
 }
 
+print_exists() {
+	if server_exists; then
+		echo $SERVER_ID
+	fi
+}
+
+print_screen() {
+	if screen_active; then
+		echo $SERVER_ID
+	fi
+}
+
+print_active() {
+	if server_active; then
+		echo $SERVER_ID
+	fi
+}
+
+print_inactive() {
+	if ! server_active; then
+		echo $SERVER_ID
+	fi
+}
+
 help() {
 	local MY_NAME="${0##*/}"
-	echo -e "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CONSOLE|$CMD_COMMAND|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY}
-		\r$CMD_HELP\t\t\tPrints this help.
-		\r$CMD_STATUS\t<id/all>\tLists status of server(s) and online players.
-		\r$CMD_START\t<id/all>\tStarts server(s) inside screen session(s).
-		\r$CMD_STOP\t<id/all>\tStops server(s) and screen session(s).
-		\r$CMD_RESTART\t<id/all>\tRestart server(s).
-		\r$CMD_CONSOLE\t<id>\t\tConnect to the screen session of a server.
-		\r$CMD_COMMAND\t<id/all> <cmd>\tForward <cmd> to specified server(s).
-		\r$CMD_CREATE\t<id>\t\tCreates a server in the configured SERVER_ROOT (default: /home/$MCS_USER).
-		\r$CMD_UPDATE\t<id/all>\tDownloads a new minecraft server executable for server(s).
-		\r$CMD_DESTROY\t<id/all>\tRemoves all files of server(s)."
+	echo -e "Usage: $MY_NAME {$CMD_HELP|$CMD_STATUS|$CMD_START|$CMD_STOP|$CMD_RESTART|$CMD_CONSOLE|$CMD_COMMAND|$CMD_CREATE|$CMD_UPDATE|$CMD_DESTROY|$CMD_PRINT_EXISTS|$CMD_PRINT_SCREEN|$CMD_PRINT_ACTIVE}
+		\r$CMD_HELPPrints this help.
+		\r$CMD_STATUS         <id/all>       Lists status of server(s) and online players.
+		\r$CMD_START          <id/all>       Starts server(s) inside screen session(s).
+		\r$CMD_STOP           <id/all>       Stops server(s) and screen session(s).
+		\r$CMD_RESTART        <id/all>       Restarts server(s).
+		\r$CMD_CONSOLE        <id>           Connects to the screen session of a server.
+		\r$CMD_COMMAND        <id/all> <cmd> Forwards <cmd> to specified server(s).
+		\r$CMD_CREATE         <id>           Creates a server in the configured SERVER_ROOT (default: /home/$MCS_USER).
+		\r$CMD_UPDATE         <id/all>       Downloads a new minecraft server executable for server(s).
+		\r$CMD_DESTROY        <id/all>       Removes all files of server(s).
+		\r$CMD_PRINT_EXISTS   <id/all>       Prints IDs of given server(s) if they exist.
+		\r$CMD_PRINT_SCREEN   <id/all>       Prints IDs of given server(s) if they have screen sessions.
+		\r$CMD_PRINT_ACTIVE   <id/all>       Prints IDs of given server(s) if they are active.
+		\r$CMD_PRINT_INACTIVE <id/all>       Prints IDs of given server(s) if they are inactive."
 }
 
 require_server_id() {
@@ -314,7 +354,7 @@ require_command() {
 require_server_exists() {
 	require_server_id
 
-	if [ ! -d "$SERVER_DIR" ]; then
+	if ! server_exists; then
 		echo $(date "+$DATE_FORMAT:") "MCServer #$SERVER_ID: Server does not exist!"
 		exit $ERROR_SERVER_MISSING
 	fi
@@ -413,6 +453,7 @@ else
 			fi
 			;;
 		"$CMD_UPDATE")
+			require_server_exists
 			update
 			;;
 		"$CMD_DESTROY")
@@ -421,6 +462,22 @@ else
 			if [[ $REPLY =~ ^[Yy]$ ]]; then
 				remove
 			fi
+			;;
+		"$CMD_PRINT_EXISTS")
+			require_server_id
+			print_exists
+			;;
+		"$CMD_PRINT_SCREEN")
+			require_server_id
+			print_screen
+			;;
+		"$CMD_PRINT_ACTIVE")
+			require_server_id
+			print_active
+			;;
+		"$CMD_PRINT_INACTIVE")
+			require_server_id
+			print_inactive
 			;;
 		*)
 			help
